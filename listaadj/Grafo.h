@@ -92,6 +92,11 @@ public:
   Grafo *Prim(int root);
   int EncontraConjunt(int x, int *v);
   void UnirConjunt(int x, int y, int *v);
+  void VisitaDfs(int u, vector<int> &cor, vector<int> &ant);
+  void VisitaDfs(int u, vector<int> &cor, vector<int> &ant, list<int> &L);
+  void ImprimeCaminho(int u, int v, vector<int> &ant);
+  void BuscaProfundidade();
+  void VisitarBfs(int u, vector<int> &cor, vector<int> &dist, vector<int> &ant);
   bool Direcional();
   bool Completo();
   bool Autoloop();
@@ -275,27 +280,33 @@ bool Grafo::Direcional()
   return false;
 }
 
-int EncontraConjunt(int x, int *v){
-  if(v[x] == -1){
+int EncontraConjunt(int x, int *v)
+{
+  if (v[x] == -1)
+  {
     return x;
   }
   return EncontraConjunt(v[x], v);
 }
 
-void UnirConjunt(int x, int y, int *v){
+void UnirConjunt(int x, int y, int *v)
+{
   int conjuntoX = EncontraConjunt(x, v);
   int conjuntoY = EncontraConjunt(y, v);
   v[conjuntoX] = conjuntoY;
 }
 
-Grafo *Grafo::Kruscal(){
+Grafo *Grafo::Kruscal()
+{
   Grafo *grafo = new Grafo(this->numVertices);
   int *v = new int[this->numVertices];
-  for(int i=0; i < this->numVertices; i ++){
+  for (int i = 0; i < this->numVertices; i++)
+  {
     v[i] = -1;
   }
   vector<Aresta> arestas;
-  for(int i=0; i < this->numVertices; i ++){
+  for (int i = 0; i < this->numVertices; i++)
+  {
     Celula *item = this->adj[i]._primeiro();
     while (item != NULL)
     {
@@ -305,10 +316,13 @@ Grafo *Grafo::Kruscal(){
     }
   }
   sort(arestas.begin(), arestas.end());
-  for(int i =0; i< arestas.size(); i++){
-    if(EncontraConjunt(arestas[i]._v1(), v) != EncontraConjunt(arestas[i]._v2(), v)){
+  for (int i = 0; i < arestas.size(); i++)
+  {
+    if (EncontraConjunt(arestas[i]._v1(), v) != EncontraConjunt(arestas[i]._v2(), v))
+    {
       grafo->insereAresta(arestas[i]._v1(), arestas[i]._v2(), arestas[i]._peso());
-      if(Direcional()) grafo->insereAresta(arestas[i]._v2(), arestas[i]._v1(), arestas[i]._peso());
+      if (Direcional())
+        grafo->insereAresta(arestas[i]._v2(), arestas[i]._v1(), arestas[i]._peso());
     }
   }
 }
@@ -336,7 +350,7 @@ Grafo *Grafo::Prim(int root)
     int vertice = Q->retiraMin();
     itensHeap[vertice] = false;
     Celula *item = this->adj[vertice]._primeiro();
-    while (item != NULL)    
+    while (item != NULL)
     {
       if (itensHeap[item->vertice] && item->peso < peso[item->vertice])
       {
@@ -348,9 +362,11 @@ Grafo *Grafo::Prim(int root)
   }
 
   Grafo *grafo = new Grafo(this->numVertices);
-  for (int i = 0; i < this->numVertices; i++){
+  for (int i = 0; i < this->numVertices; i++)
+  {
     grafo->insereAresta(i, antecessor[i], peso[i]);
-    if(Direcional()) grafo->insereAresta(antecessor[i], i, peso[i]);
+    if (Direcional())
+      grafo->insereAresta(antecessor[i], i, peso[i]);
   }
   return grafo;
 }
@@ -371,6 +387,169 @@ bool Grafo::Autoloop()
     if (this->existeAresta(i, i))
       return true;
   return false;
+}
+
+void Grafo::VisitaDfs(int u, vector<int> &cor, vector<int> &ant)
+{
+  int branco = 1;
+  int cinza = 2;
+  int preto = 3;
+  bool ciclo = false;
+
+  vector<int> d(this->numVertices);
+  vector<int> t(this->numVertices);
+
+  cor[u] = cinza;
+
+  Celula *item = this->adj[u]._primeiro();
+  d[item->vertice]++;
+  while (item != NULL)
+  {
+    if (cor[item->vertice] == cinza)
+      ciclo = true;
+    if (cor[item->vertice] == branco)
+    {
+      ant[item->vertice] = u;
+      VisitaDfs(item->vertice, cor, ant);
+    }
+    item = this->adj[u].proximo();
+  }
+  cor[u] = preto;
+  t[item->vertice]++;
+}
+
+void Grafo::VisitaDfs(int u, vector<int> &cor, vector<int> &ant, list<int> &L)
+{
+
+  int branco = 1;
+  int cinza = 2;
+  int preto = 3;
+  bool ciclo = false;
+
+  vector<int> d(this->numVertices);
+  vector<int> t(this->numVertices);
+
+  cor[u] = cinza;
+
+  Celula *item = this->adj[u]._primeiro();
+  d[item->vertice]++;
+  while (item != NULL)
+  {
+    if (cor[item->vertice] == cinza)
+      ciclo = true;
+    if (cor[item->vertice] == branco)
+    {
+      ant[item->vertice] = u;
+      VisitaDfs(item->vertice, cor, ant);
+    }
+
+    item = this->adj[u].proximo();
+  }
+  cor[u] = preto;
+  t[item->vertice]++;
+  L.push_front(u);
+}
+
+void Grafo::buscaLargura()
+{
+
+  int branco = 1;
+  int cinza = 2;
+  int preto = 3;
+
+  vector<int> cor(this->numVertices, branco);
+  vector<int> dist(this->numVertices, -1);
+  vector<int> ant(this->numVertices, -1);
+
+  for (int i = 0; i < this->numVertices; i++)
+  {
+    if (cor[i] == branco)
+    {
+
+      V(i, cor, dist, ant);
+    }
+  }
+
+  for (int i = 0; i < this->numVertices; i++)
+  {
+    cout << dist[i] << " ";
+  }
+  cout << endl;
+
+  for (int i = 0; i < this->numVertices; i++)
+  {
+    cout << ant[i] << " ";
+  }
+  cout << endl;
+}
+
+void Grafo::ImprimeCaminho(int u, int v, vector<int> &ant)
+{
+  if (u == v)
+    cout << v;
+
+  if (ant[v] == -1)
+    cout << "Não existe caminho de u para v";
+  else
+  {
+    ImprimeCaminho(u, ant[v], ant);
+    cout << v;
+  }
+}
+
+void Grafo::V(int u, vector<int> &cor, vector<int> &dist, vector<int> &ant)
+{
+
+  int branco = 1;
+  int cinza = 2;
+  int preto = 3;
+  queue<int> fila;
+
+  dist[u] = 0;
+  cor[u] = cinza;
+
+  fila.push(u);
+
+  while (!fila.empty())
+  {
+    u = fila.front();
+    fila.pop();
+    vector<int> adj = ListarAdj(u);
+    for (int i = 0; i < adj.size(); i++)
+    {
+      if (cor[adj[i]] == branco)
+      {
+        cor[adj[i]] = cinza;
+        dist[adj[i]] = dist[u] + 1;
+        ant[adj[i]] = u;
+        fila.push(adj[i]);
+      }
+    }
+    cor[u] = preto;
+  }
+}
+
+void Grafo::BuscaProfundidade()
+{
+
+  int branco = 1;
+  int cinza = 2;
+  int preto = 3;
+
+  vector<int> cor(this->numVertices, branco);
+  vector<int> ant(this->numVertices, -1);
+  list<int> L;
+
+  int k = 0;
+
+  for (int i = 0; i < this->numVertices; i++)
+  {
+    if (cor[i] == branco)
+    {
+      k++;
+      VisitaDfs(i, cor, ant, L);
+    }
+  }
 }
 
 Grafo::~Grafo()
