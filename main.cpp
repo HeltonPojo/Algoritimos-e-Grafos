@@ -1,16 +1,19 @@
 #include "listaadj/Grafo.h" 
 #include <fstream>
+#include <vector>
+#include <bits/stdc++.h>
 using namespace std;
 
 int main (int argc, char **argv) 
 {
     ifstream in ("input.txt");
     Grafo *grafo = new Grafo (in);
+    cout << "Grafo" << endl;
     grafo->imprime ();  
 
     //Ex1: criar e imprimir grafo transposto.
 
-    cout << "Transposta" << endl;
+    cout << "Transposto" << endl;
 
     Grafo *grafo_trans = grafo->grafoTransposto();
 
@@ -35,14 +38,16 @@ int main (int argc, char **argv)
     cout<<"Direcional: "<<grafoND->Direcional()<<endl;
     cout<<"Completo: "<<grafoND->Completo()<<endl;
     cout<<"Autoloop: "<<grafoND->Autoloop()<<endl;
+   
+    cout << "Busca Largura" << endl;
+    grafoND->BuscaLargura();
 
-    grafo->imprime();  
-    grafoND->buscaLargura();
+    Grafo *grafoKru = grafoND->Kruscal();
+    Grafo *grafoPrim = grafoND->Prim(0);
 
-    Grafo *grafoKru = grafo->Kruscal();
-    Grafo *grafoPrim = grafo->Prim(0);
-
+    cout << "Kruscal"<< endl;
     grafoKru->imprime();
+    cout << "Prim"<< endl;
     grafoPrim->imprime();
 }
 

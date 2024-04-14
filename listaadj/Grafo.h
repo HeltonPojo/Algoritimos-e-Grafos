@@ -2,6 +2,7 @@
 #include "FPHeapMinIndireto.h"
 #include <iostream>
 #include <vector>
+#include <list>
 #include <queue>
 #include <algorithm>
 #include <array>
@@ -27,6 +28,9 @@ public:
     int _peso() { return this->peso; }
     int _v1() { return this->v1; }
     int _v2() { return this->v2; }
+    bool operator<(const Aresta& outra) const{
+      return peso < outra.peso;
+    }
     ~Aresta() {}
   };
 
@@ -90,13 +94,14 @@ public:
   vector<int> listaAdj(int v1);
   Grafo *Kruscal();
   Grafo *Prim(int root);
-  int EncontraConjunt(int x, int *v);
-  void UnirConjunt(int x, int y, int *v);
+  //int EncontraConjunt(int x, int *v);
+  //void UnirConjunt(int x, int y, int *v);
   void VisitaDfs(int u, vector<int> &cor, vector<int> &ant);
   void VisitaDfs(int u, vector<int> &cor, vector<int> &ant, list<int> &L);
   void ImprimeCaminho(int u, int v, vector<int> &ant);
   void BuscaProfundidade();
   void VisitarBfs(int u, vector<int> &cor, vector<int> &dist, vector<int> &ant);
+  void BuscaLargura();
   bool Direcional();
   bool Completo();
   bool Autoloop();
@@ -280,7 +285,7 @@ bool Grafo::Direcional()
   return false;
 }
 
-int Grafo::EncontraConjunt(int x, int *v)
+int EncontraConjunt(int x, int *v)
 {
   if (v[x] == -1)
   {
@@ -289,7 +294,7 @@ int Grafo::EncontraConjunt(int x, int *v)
   return EncontraConjunt(v[x], v);
 }
 
-void Grafo::UnirConjunt(int x, int y, int *v)
+void UnirConjunt(int x, int y, int *v)
 {
   int conjuntoX = EncontraConjunt(x, v);
   int conjuntoY = EncontraConjunt(y, v);
@@ -304,27 +309,35 @@ Grafo *Grafo::Kruscal()
   {
     v[i] = -1;
   }
-  vector<Aresta> arestas;
+  vector<Aresta*> arestas;
   for (int i = 0; i < this->numVertices; i++)
   {
     Celula *item = this->adj[i]._primeiro();
     while (item != NULL)
     {
       Aresta *nova = new Aresta(i, item->vertice, item->peso);
-      arestas.push_back(*nova);
+      arestas.push_back(nova);
       item = this->adj[i].proximo();
     }
   }
-  sort(arestas.begin(), arestas.end());
+
+  sort(arestas.begin(), arestas.end(), [](Aresta *a, Aresta *b) {
+    return a->_peso() < b->_peso(); 
+  });
+
   for (int i = 0; i < arestas.size(); i++)
-  {
-    if (EncontraConjunt(arestas[i]._v1(), v) != EncontraConjunt(arestas[i]._v2(), v))
+  { 
+    if (EncontraConjunt(arestas[i]->_v1(), v) != EncontraConjunt(arestas[i]->_v2(), v))
     {
-      grafo->insereAresta(arestas[i]._v1(), arestas[i]._v2(), arestas[i]._peso());
+      for(int j=0; j < this->numVertices; j++) cout << v[j] << " ";
+      cout << endl;
+      grafo->insereAresta(arestas[i]->_v1(), arestas[i]->_v2(), arestas[i]->_peso());
       if (Direcional())
-        grafo->insereAresta(arestas[i]._v2(), arestas[i]._v1(), arestas[i]._peso());
+        grafo->insereAresta(arestas[i]->_v2(), arestas[i]->_v1(), arestas[i]->_peso());
+      UnirConjunt(arestas[i]->_v1(), arestas[i]->_v2(), v);
     }
   }
+  return grafo;
 }
 
 Grafo *Grafo::Prim(int root)
@@ -335,17 +348,15 @@ Grafo *Grafo::Prim(int root)
   int *vs = new int[this->numVertices + 1];
   for (int i = 0; i < this->numVertices; i++)
   {
-    Celula *item = this->adj[i]._primeiro();
-    peso[i] = INT32_MAX;
+    peso[i] = INT16_MAX;
     antecessor[i] = -1;
     itensHeap[i] = 1;
-    vs[i + 1] = item->vertice;
-    item = this->adj[i].proximo();
+    vs[i + 1] = i;
   }
 
   peso[root] = 0;
   FPHeapMinIndireto *Q = new FPHeapMinIndireto(peso, vs, this->numVertices);
-  while (Q->vazio())
+  while (!Q->vazio())
   {
     int vertice = Q->retiraMin();
     itensHeap[vertice] = false;
@@ -364,9 +375,10 @@ Grafo *Grafo::Prim(int root)
   Grafo *grafo = new Grafo(this->numVertices);
   for (int i = 0; i < this->numVertices; i++)
   {
-    grafo->insereAresta(i, antecessor[i], peso[i]);
+    int pesoInt = static_cast<int>(peso[i]);
+    grafo->insereAresta(i, antecessor[i], pesoInt);
     if (Direcional())
-      grafo->insereAresta(antecessor[i], i, peso[i]);
+      grafo->insereAresta(antecessor[i], i, pesoInt);
   }
   return grafo;
 }
@@ -450,7 +462,7 @@ void Grafo::VisitaDfs(int u, vector<int> &cor, vector<int> &ant, list<int> &L)
   L.push_front(u);
 }
 
-void Grafo::buscaLargura()
+void Grafo::BuscaLargura()
 {
 
   int branco = 1;
@@ -514,7 +526,7 @@ void Grafo::VisitarBfs(int u, vector<int> &cor, vector<int> &dist, vector<int> &
   {
     u = fila.front();
     fila.pop();
-    vector<int> adj = ListarAdj(u);
+    vector<int> adj = listaAdj(u);
     for (int i = 0; i < adj.size(); i++)
     {
       if (cor[adj[i]] == branco)
