@@ -280,7 +280,7 @@ bool Grafo::Direcional()
   return false;
 }
 
-int EncontraConjunt(int x, int *v)
+int Grafo::EncontraConjunt(int x, int *v)
 {
   if (v[x] == -1)
   {
@@ -289,7 +289,7 @@ int EncontraConjunt(int x, int *v)
   return EncontraConjunt(v[x], v);
 }
 
-void UnirConjunt(int x, int y, int *v)
+void Grafo::UnirConjunt(int x, int y, int *v)
 {
   int conjuntoX = EncontraConjunt(x, v);
   int conjuntoY = EncontraConjunt(y, v);
@@ -466,7 +466,7 @@ void Grafo::buscaLargura()
     if (cor[i] == branco)
     {
 
-      V(i, cor, dist, ant);
+      VisitarBfs(i, cor, dist, ant);
     }
   }
 
@@ -497,7 +497,7 @@ void Grafo::ImprimeCaminho(int u, int v, vector<int> &ant)
   }
 }
 
-void Grafo::V(int u, vector<int> &cor, vector<int> &dist, vector<int> &ant)
+void Grafo::VisitarBfs(int u, vector<int> &cor, vector<int> &dist, vector<int> &ant)
 {
 
   int branco = 1;

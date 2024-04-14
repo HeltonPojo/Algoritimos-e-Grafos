@@ -23,14 +23,6 @@ int main (int argc, char **argv)
     Grafo *grafoND = grafo->grafoNaoDirecionado();
 
     grafoND->imprime();
-    
-    //Ex3: Ler e inserir nova aresta, verificando se ela já existe.
-
-    //grafo->lerAresta();
-    
-    //Ex4: Ler e remover uma aresta, verificando se ela já existe.
-
-    //Ex5: Imprimir uma lista adjacente de um determinado vértices.
 
     vector<int> listaadj = grafo->listaAdj(2);
 
@@ -43,6 +35,15 @@ int main (int argc, char **argv)
     cout<<"Direcional: "<<grafoND->Direcional()<<endl;
     cout<<"Completo: "<<grafoND->Completo()<<endl;
     cout<<"Autoloop: "<<grafoND->Autoloop()<<endl;
+
+    grafo->imprime();  
+    grafoND->buscaLargura();
+
+    Grafo *grafoKru = grafo->Kruscal();
+    Grafo *grafoPrim = grafo->Prim(0);
+
+    grafoKru->imprime();
+    grafoPrim->imprime();
 }
 
 
