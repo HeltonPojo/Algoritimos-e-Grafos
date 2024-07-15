@@ -1,4 +1,4 @@
 all:
-	g++ main.cpp -o progGrafos
+	clang++ main.cpp -o progGrafos 
 clean:
 	rm progGrafos
