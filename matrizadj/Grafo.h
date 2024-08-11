@@ -247,7 +247,7 @@ using namespace std;
         }
       }
     }
-    // Impressão do caminho mínimo
+    
     if (d[origem][destino] == INT_MAX) {
         cout << "Não existe caminho entre " << origem << " e " << destino << endl;
     } else {
@@ -260,7 +260,6 @@ using namespace std;
         cout << destino << endl;
     }
 
-    // Liberação da memória alocada
     for (int i = 0; i < this->numVertices; i++) {
         delete[] d[i];
         delete[] antecessor[i];
