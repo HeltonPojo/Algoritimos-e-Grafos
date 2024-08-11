@@ -44,6 +44,7 @@ using namespace std;
     bool ExisteCaminhoEuler();
     bool ExisteCicloEuler();
     vector<int> listaAdj(int v1);
+    void floydWarshall(int origem, int destino);
     ~Grafo ();	  
 	};
 
@@ -215,6 +216,59 @@ using namespace std;
     delete [] this->mat;
     delete [] this->pos;
   }
+
+  void Grafo::floydWarshall(int origem, int destino){
+    cout << "Teste" << endl;
+    int** d = new int*[this->numVertices];
+    int** antecessor = new int*[this->numVertices];
+    for (int i = 0; i < this->numVertices; i++) {
+        d[i] = new int[this->numVertices];
+        antecessor[i] = new int[this->numVertices];
+    }
+
+    for(int i = 0; i < this->numVertices; i++){
+      for (int j = 0; j < this->numVertices; j++) {
+        if (this->mat[i][j] != 0) {
+          d[i][j] = this->mat[i][j];
+          antecessor[i][j] = i;
+        } else {
+          d[i][j] = INT16_MAX;
+          antecessor[i][j] = -1;
+        }
+      }
+    }
+    for (int k = 0; k < this->numVertices; k++){
+      for (int i = 0; i < this->numVertices; i++){
+        for (int j = 0; j < this->numVertices; j++){
+         if(d[i][k] + d[k][j] < d[i][j]) {
+            d[i][j] = d[k][j] + d[i][k];
+            antecessor[i][j] = antecessor[k][j];
+         }
+        }
+      }
+    }
+    // Impressão do caminho mínimo
+    if (d[origem][destino] == INT_MAX) {
+        cout << "Não existe caminho entre " << origem << " e " << destino << endl;
+    } else {
+        cout << origem << " -> ";
+        int atual = destino;
+        while (atual != origem) {
+            cout << antecessor[origem][atual] << " -> ";
+            atual = antecessor[origem][atual];
+        }
+        cout << destino << endl;
+    }
+
+    // Liberação da memória alocada
+    for (int i = 0; i < this->numVertices; i++) {
+        delete[] d[i];
+        delete[] antecessor[i];
+    }
+    delete[] d;
+    delete[] antecessor;
+  }
+
 
 
 
