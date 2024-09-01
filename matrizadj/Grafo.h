@@ -25,8 +25,8 @@ using namespace std;
 	  int **mat; // @{\it pesos do tipo inteiro}@
     int numVertices;
     int *pos; // @{\it posi\c{c}\~ao atual ao se percorrer os adjs de um v\'ertice v}@
-    vector<vector<int>> fluxo;
-    vector<vector<int>> capacidade;
+    vector<vector<int> > fluxo;
+    vector<vector<int> > capacidade;
 
   public:
     Grafo (int numVertices);
@@ -66,10 +66,13 @@ using namespace std;
       for (int j = 0; j < this->numVertices; j++) this->mat[i][j] = 0;
       this->pos[i] = -1; 
     }
+    capacidade.resize(numVertices, vector<int>(numVertices, 0));
+    fluxo.resize(numVertices, vector<int>(numVertices, 0));
 
     while (in>>v1>>v2>>peso) {
       Grafo::Aresta *a = new Grafo::Aresta (v1, v2, peso);
-      this->insereAresta (a->_v1 (), a->_v2 (), a->_peso ()); 
+      this->insereAresta (a->_v1 (), a->_v2 (), a->_peso ());
+      this->adicionarAresta(a->_v1 (), a->_v2 (), a->_peso ());
       delete a;
     }
   }
@@ -86,7 +89,7 @@ using namespace std;
     }
     capacidade.resize(numVertices, vector<int>(numVertices, 0));
     fluxo.resize(numVertices, vector<int>(numVertices, 0));
-  }	  
+  }
   
   Grafo::Grafo (int numVertices, int numArestas) {
     this->mat = new int*[numVertices];
