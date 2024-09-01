@@ -8,6 +8,7 @@
 #include <array>
 #include <cstring>
 #include <float.h>
+#include <typeinfo>
 using namespace std;
 
 class Grafo
@@ -103,6 +104,9 @@ public:
   void ImprimeCaminho(int u, int v, vector<int> &ant);
   void BuscaProfundidade();
   void VisitarBfs(int u, vector<int> &cor, vector<int> &dist, vector<int> &ant);
+  vector<int> EncontraClique();
+  bool EhClique(vector<int>& clique);
+  int ContaCliques();
   void BuscaLargura();
   bool Direcional();
   bool Completo();
@@ -592,6 +596,51 @@ void Grafo::BuscaProfundidade()
       VisitaDfs(i, cor, ant, L);
     }
   }
+}
+
+
+bool Grafo::EhClique(vector<int>& clique) {
+    if(clique.size() <= 1) return false;
+    for (size_t i = 0; i < clique.size(); i++) {
+        for (size_t j = i + 1; j < clique.size(); j++) {
+            if (!this->existeAresta(clique[i], clique[j])) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+vector<int> Grafo::EncontraClique() {
+    vector<int> maxClique;
+    for (int i = 0; i < (1 << this->numVertices); i++) {
+        vector<int> subset;
+        for (int j = 0; j < this->numVertices; j++) {
+            if (i & (1 << j)) {
+                subset.push_back(j);
+            }
+        }
+        if (EhClique(subset) && maxClique.size() < subset.size()) {
+            maxClique = subset;
+        }
+    }
+    return maxClique;
+}
+
+int Grafo::ContaCliques() {
+    int totalCliques = 0;
+    for (int i = 0; i < (1 << this->numVertices); i++) {
+        vector<int> subset;
+        for (int j = 0; j < this->numVertices; j++) {
+            if (i & (1 << j)) {
+                subset.push_back(j);
+            }
+        }
+        if (EhClique(subset)) {
+            totalCliques++;
+        }
+    }
+    return totalCliques;
 }
 
 Grafo::~Grafo()

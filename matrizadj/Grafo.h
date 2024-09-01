@@ -25,6 +25,8 @@ using namespace std;
 	  int **mat; // @{\it pesos do tipo inteiro}@
     int numVertices;
     int *pos; // @{\it posi\c{c}\~ao atual ao se percorrer os adjs de um v\'ertice v}@
+    vector<vector<int>> fluxo;
+    vector<vector<int>> capacidade;
 
   public:
     Grafo (int numVertices);
@@ -45,6 +47,9 @@ using namespace std;
     bool ExisteCicloEuler();
     vector<int> listaAdj(int v1);
     void floydWarshall(int origem, int destino);
+    bool bfs(int s, int t, vector<int>& pai);
+    int fordFulkerson(int origem, int destino);
+    void adicionarAresta(int u, int v, int capacidade);
     ~Grafo ();	  
 	};
 
@@ -79,6 +84,8 @@ using namespace std;
       for (int j = 0; j < this->numVertices; j++) this->mat[i][j] = 0;
       this->pos[i] = -1; 
     }
+    capacidade.resize(numVertices, vector<int>(numVertices, 0));
+    fluxo.resize(numVertices, vector<int>(numVertices, 0));
   }	  
   
   Grafo::Grafo (int numVertices, int numArestas) {
@@ -103,6 +110,61 @@ using namespace std;
     for (int i = 0; i < this->numVertices; i++)
       if (this->mat[v][i] > 0) return false;
     return true;
+  }
+
+  void Grafo::adicionarAresta(int u, int v, int capacidade) {
+      this->capacidade[u][v] = capacidade;
+  }
+
+  bool Grafo::bfs(int s, int t, vector<int>& pai) {
+      vector<bool> visitado(numVertices, false);
+      queue<int> fila;
+      
+      fila.push(s);
+      visitado[s] = true;
+      pai[s] = -1;
+      
+      while (!fila.empty()) {
+          int u = fila.front();
+          fila.pop();
+          
+          for (int v = 0; v < numVertices; v++) {
+              if (!visitado[v] && (capacidade[u][v] - fluxo[u][v]) > 0) {
+                  fila.push(v);
+                  pai[v] = u;
+                  visitado[v] = true;
+                  if (v == t) {
+                      return true;
+                  }
+              }
+          }
+      }
+      
+      return false;
+  }
+
+  int Grafo::fordFulkerson(int origem, int destino) {
+      int fluxoMaximo = 0;
+      vector<int> pai(numVertices);
+      
+      while (bfs(origem, destino, pai)) {
+          int caminhoFluxo = INT_MAX;
+          
+          for (int v = destino; v != origem; v = pai[v]) {
+              int u = pai[v];
+              caminhoFluxo = min(caminhoFluxo, capacidade[u][v] - fluxo[u][v]);
+          }
+          
+          for (int v = destino; v != origem; v = pai[v]) {
+              int u = pai[v];
+              fluxo[u][v] += caminhoFluxo;
+              fluxo[v][u] -= caminhoFluxo;
+          }
+          
+          fluxoMaximo += caminhoFluxo;
+      }
+      
+      return fluxoMaximo;
   }
 
   Grafo::Aresta *Grafo::lerAresta()
