@@ -16,6 +16,7 @@ using namespace std;
 		  ~Celula () { if (item != 0) delete item; }
 		};
 	  Celula *primeiro, *ultimo, *pos;
+    int tamanho; 
 	public:
 		Lista (); // @{\it Cria uma Lista vazia}@
 		T *pesquisa (const T& chave) const;
@@ -27,19 +28,27 @@ using namespace std;
     T *_primeiro ();
     T *proximo ();
 		bool vazia () const;
+		int size() const; 
 		void imprime () const;
 		~Lista ();
 	};	
 	template <class T> Lista<T>::Lista () {
 	  this->primeiro = new Celula (); this->pos = this->primeiro;
 	  this->ultimo = this->primeiro; this->primeiro->prox = 0;
+  this->tamanho = 0; 
 	}	
 	template <class T>	
 	void Lista<T>::insere (const T& x) {  
 	  this->ultimo->prox = new Celula (); 
 	  this->ultimo = this->ultimo->prox; 
 	  this->ultimo->item = new T (x); this->ultimo->prox = 0;
+  this->tamanho++;  // Incrementa o tamanho
 	}
+
+	template <class T>
+int Lista<T>::size() const {
+  return this->tamanho;
+}
 	// @{\it Insere antes do primeiro item da lista}@
 	template <class T>	
   void Lista<T>::inserePrimeiro (T& item) {

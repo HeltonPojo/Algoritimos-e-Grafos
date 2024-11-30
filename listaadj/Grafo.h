@@ -9,6 +9,8 @@
 #include <cstring>
 #include <float.h>
 #include <typeinfo>
+#include <map>
+
 using namespace std;
 
 class Grafo
@@ -109,6 +111,11 @@ public:
   int ContaCliques();
   void BuscaLargura();
   bool Direcional();
+  double calcularModularidade(vector<int>& comunidades);
+  double calcularModularidadeRestante(vector<int>& comunidades, int v, int comunidadeOriginal, int comunidadeNova);
+  void fase1Louvain(vector<int>& comunidades);
+  Grafo* fase2Louvain(vector<int>& comunidades);
+  void louvain();
   bool Completo();
   bool Autoloop();
   ~Grafo();
@@ -642,6 +649,108 @@ int Grafo::ContaCliques() {
     }
     return totalCliques;
 }
+
+double Grafo::calcularModularidade(vector<int>& comunidades) {
+    double modularidade = 0.0;
+    double m = 0.0; // total sum of the weights of all edges
+    
+    for (int i = 0; i < this->numVertices; i++) {
+      
+        Celula *item = this->adj[i]._primeiro();
+        while (item != NULL) {
+            m += item->peso;
+            item = this->adj[i].proximo();
+        }
+    }
+
+    for (int v1 = 0; v1 < this->numVertices; v1++) {
+        Celula *item = this->adj[v1]._primeiro();
+        while (item != NULL) {
+            int v2 = item->vertice;
+            if (comunidades[v1] == comunidades[v2]) {
+                modularidade += item->peso - (this->adj[v1].size() * this->adj[v2].size() / (m));
+            }
+            item = this->adj[v1].proximo();
+        }
+    }
+    return modularidade / (m);
+}
+
+double Grafo::calcularModularidadeRestante(vector<int>& comunidades, int v, int comunidadeOriginal, int comunidadeNova) {
+    double modularidadeOriginal = this->calcularModularidade(comunidades);
+    
+    // Copiar a lista de comunidades e aplicar a mudança
+    vector<int> comunidadesAlteradas = comunidades;
+    comunidadesAlteradas[v] = comunidadeNova;
+    
+    double modularidadeNova = this->calcularModularidade(comunidadesAlteradas);
+    
+    // Retornar o ganho
+    return modularidadeNova - modularidadeOriginal;
+}
+
+void Grafo::fase1Louvain(vector<int>& comunidades) {
+    bool houveMelhoria = true;
+    double melhorGanho = 0;
+    while (houveMelhoria) {
+        houveMelhoria = false;
+        for (int v = 0; v < this->numVertices; v++) {
+            int comunidadeOriginal = comunidades[v];
+            int melhorComunidade = comunidadeOriginal;
+            vector<int> adj = this->listaAdj(v);
+
+            for (int vizinho : adj) {
+                int comunidadeVizinho = comunidades[vizinho];
+                if (comunidadeVizinho != comunidadeOriginal) {
+                    comunidades[v] = comunidadeVizinho;
+                    
+                    // Calcular o ganho na modularidade
+                    double ganho = this->calcularModularidade(comunidades) - this->calcularModularidadeRestante(comunidades, v, comunidadeOriginal, comunidadeVizinho);
+                    cout << "modularidades de " << v << " " << ganho << " " << melhorGanho << endl;
+                    if (ganho > melhorGanho) {
+                        cout  << "move "<< v << " para " << comunidadeVizinho << endl;
+                        melhorGanho = ganho;
+                        melhorComunidade = comunidadeVizinho;
+                        houveMelhoria = true;
+                    }
+                }
+            }
+            
+            comunidades[v] = melhorComunidade;
+        }
+    }
+}
+
+
+void Grafo::louvain() {
+    vector<int> comunidades(this->numVertices);
+    for (int i = 0; i < this->numVertices; i++) {
+        comunidades[i] = i; // Cada nó começa como sua própria comunidade
+    }
+
+    double modularidadeAtual = this->calcularModularidade(comunidades);
+    bool houveMelhoria = true;
+    
+    this->fase1Louvain(comunidades);
+    // while (houveMelhoria) {
+    //     // Grafo *novoGrafo = this->fase2Louvain(comunidades);
+        
+    //     double novaModularidade = this->calcularModularidade(comunidades);
+    //     if (novaModularidade > modularidadeAtual) {
+    //         modularidadeAtual = novaModularidade;
+    //     } else {
+    //         houveMelhoria = false;
+    //     }
+        
+    //     // delete novoGrafo; // Limpar o grafo anterior
+    // }
+
+    // Exibir as comunidades finais
+    for (int i = 0; i < this->numVertices; i++) {
+        cout << "Vértice " << i << " está na comunidade " << comunidades[i] << endl;
+    }
+}
+
 
 Grafo::~Grafo()
 {
